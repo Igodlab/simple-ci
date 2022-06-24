@@ -1,4 +1,6 @@
-# First interaction with Nix
+# Checkpoint 1
+
+## First interaction with Nix
 
 So Nix can easily be confused if we do not make the distinction between three things:
 
@@ -32,7 +34,7 @@ Then  I started the nix-shell from `~/Cardano-King/plutus-apps` and cd to the `s
 
 Inside a nix-shell we start our project with cabal
 
-```shell
+```bash
 [nix-shell:~/simple-ci]$ nix-shell -p ghc --run 'cabal init'
 ```
 
@@ -47,7 +49,7 @@ Go to `~/.cabal/config` and add the flag `-- nix: True` (line 25 in my file)
 22 -- default-user-config:
 23 -- ignore-expiry: False
 24 -- http-transport:
-25 -- nix: False
+25 -- nix: True
 26 -- local-no-index-repo:
 remote-repo-cache: /home/igodlab/.cabal/packages
 ⠇
@@ -60,12 +62,21 @@ and here is where the **boilerplate** of starting a project with Nix comes.
 ## Nix boilerplate
 
 Have a look at Gabriella's repository to learn all of this regarding Nix in [`Gabriella439/haskell-nix`](https://github.com/Gabriella439/haskell-nix)
-#### add `shell.nix` file
 
-Open a new `shell.nix` file with vim and get started with the following content 
+We will work with 3 `xxx.nix` files:
+
+- i)   config.nix
+- ii)  default.nix
+- iii) shell.nix
+
+#### i) create `config.nix` file
+
+This Nix configuration file contains all the Nix logic to build our Haskell package.
+
+Open a new `config.nix` file with vim and write the content below. Briely we are interested in key options: overwritting Haskell packages, specifially our pacage that we are building right now.
 
 
-```
+```nix
 1 { packageOverrides = pkgs: { 
 2      haskellPackages = pkgs.haskellPackages.override { 
 3          overrides = haskellPackagesNew: haskellPackagesOld: { 
@@ -78,10 +89,40 @@ Open a new `shell.nix` file with vim and get started with the following content
 ```
 we are adding only one Haskell package in the Haskell package set (in line 4). This package will reside in `./default.nix` that we are about to create. Follow the steps below
 
-```shell
+What is cool about Nix is that is a build language where files can import other files by reference.
+
+#### ii) create extra packages to compile: `default.nix`
+
+```bash
 [nix-shell:~/simple-ci]$ cabal2nix . > default.nix
 ```
 
+the arguments here are: in this local directory path `cabal2nix .` write cabal2nix to this file `> default.nix`
+
+#### iii) tight things togheter with `shell.nix`
+
+Create a gigantic package set that is **lazy-computed** based of that `./config.nix` and the out of that package set build the Haskell package named `simple-ci` and give me the environment for nix shell
+
+
+```nix
+let 
+    pkgs = import <nixpkgs> { config = import ./config.nix; };
+in
+    pkgs.haskellPackages.simple-ci.env
 ```
 
+Now everything is set up, so by typing `cabal configure` it should:
+- pick up the `nix-shell`
+- get the right version of `ghc`
+- get the right version of Haskell packages 
+- then, go over to build the cabal project
+
+```bash
+[nix-shell:~/simple-ci]$ cabal configure
+⠇
+[nix-shell:~/simple-ci]$ cabal build
+⠇
+[nix-shell:~/simple-ci]$ cabal repl
+ghci> 
 ```
+Congrats! This is the end of **Checkpoint 1**
