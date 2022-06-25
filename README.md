@@ -1,4 +1,4 @@
- # Toy service: Simple CI Server
+# Toy service: Simple CI Server
 
 Using Nix following the presentation by Gabriella Gonzales on the Bay Area Haskell Users Group [YT channel](https://www.youtube.com/watch?v=NQJVNvxgDqg&list=WL&index=50&t=2444s)
 
